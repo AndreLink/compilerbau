@@ -1,0 +1,60 @@
+int global;
+int a[10];
+
+void print (int i);
+
+int scan ();
+
+void exit (int i);
+
+int func (int arr[10], int len, int threshold) {
+	int i;
+	int sum;
+	int tmp_0 = 0;
+	i = tmp_0;
+	int tmp_1 = 0;
+	sum = tmp_1;
+while_label_0:;
+	int tmp_2 = i < len;
+	if(tmp_2) goto label_0; 
+	goto label_1; 
+label_0:;
+	int tmp_3 = arr[i];
+	int tmp_4 = tmp_3 <= threshold;
+	if(tmp_4) goto label_2; 
+	goto label_3; 
+label_2:;
+	int tmp_5 = 1;
+	int tmp_6 = sum + tmp_5;
+	sum = tmp_6;
+	goto label_4;
+label_3:;
+label_4:;
+	int tmp_7 = 1;
+	int tmp_8 = i + tmp_7;
+	i = tmp_8;
+
+	print(i);
+	goto while_label_0;
+label_1:;
+	return sum;
+}
+
+int main () {
+	int tmp_10 = 1;
+	global = tmp_10;
+	int tmp_11 = 5;
+	int tmp_12 = 5;
+	int tmp_13 = tmp_11 + tmp_12;
+	int tmp_14 = 5;
+
+	int tmp_15 = func(a, tmp_13, tmp_14);
+	return tmp_15;
+
+	int tmp_16 = scan();
+
+	print(tmp_16);
+	int tmp_18 = 0;
+
+	exit(tmp_18);
+}

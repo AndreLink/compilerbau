@@ -295,5 +295,7 @@ void print_function_declaration(type ret_type, char *id, linked_list *parameter_
 void print_function_declaration_statement_list(nt_stmt_list *statement_list);
 nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list);
 void merge_statement_lists(nt_stmt_list *stmt_list_dest, nt_stmt_list *stmt_list_source);
+int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr);
+int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expression *expr);
 
 #endif

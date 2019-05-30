@@ -7,6 +7,8 @@
 #include "linkedlist.h"
 
 int yeet = 42;
+int inter_var = 0;
+int inter_label = 0;
 void yyerror(const char *msg);
 
 /*
@@ -860,16 +862,23 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
         switch (current_statement->represents)
         {
         case STMT_BLOCK:
-            printf("\tthis is a block\n");
             nt_stmt_block *block = current_statement->data;
             nt_stmt_list *new_block_stmt_list = handle_statement_list(block->stmts);
             merge_statement_lists(new_statement_list, new_block_stmt_list);
             break;
         case VARIABLE_DECLARATION:
-            printf("\tthis is a var declaration\n");
+            nt_variable_declaration *declaration = current_statement->data;
+            list_element *current_identifier_list_element = declaration->identifiers->first;
+            while (current_identifier_list_element)
+            {
+                nt_identifier_declaration *identifier = (nt_identifier_declaration *)current_identifier_list_element->data;
+                add_to_ll(new_statement_list, ntf_variable_declaration_2(declaration->type, identifier));
+                current_identifier_list_element = current_identifier_list_element->next;
+            }
             break;
         case EXPRESSION:
-            printf("\tthis is an expression\n");
+            nt_expression *expr = current_statement->data;
+            handle_expression(new_statement_list, expr);
             break;
         case STMT_CONDITIONAL:
             printf("\tthis is a conditional\n");
@@ -883,6 +892,118 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
         current_statement_list_element = current_statement_list_element->next;
     }
     return new_statement_list;
+}
+/*
+_UNKNOWN_OPERATOR = 0, //fail          a, b unused
+    _ASSIGN,               //a = b
+    _LOGICAL_OR,           //a || b
+    _LOGICAL_AND,          //a && b
+    _LOGICAL_NOT,          //!a            b unused
+    _EQ,                   //a == b
+    _NE,                   //a != b
+    _LS,                   //a < b
+    _LSEQ,                 //a <= b
+    _GT,                   //a > b
+    _GTEQ,                 //a >= b
+    _PLUS,                 //a + b
+    _MINUS,                //a - b
+    _UNARY_PLUS,           //a             b unused
+    _UNARY_MINUS,          //-a            b unused
+    _SHIFT_LEFT,           //a << b
+    _SHIFT_RIGHT,          //a >> b
+    _MUL,                  //a * b
+    _DIV,                  //a / b
+    _ARRAY_ACCESS,         //a[b]          a is of type char*, b is of type nt_primary*
+    _FUNCTION_CALL,        // a()          a is of type nt_function_call*, b is unused
+    _PRIMARY,              // a            a is of type nt_primary*, b is unused
+    _PARENTHESIS,          //(a)           b is unused
+*/
+int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
+{
+    switch (expr->operator)
+    {
+    case _ASSIGN:
+        int t = handle_expression(new_statement_list, expr->b);
+
+        /* create primary expression for helper variable */
+        char helpname[10];
+        sprintf(helpname, "__h%d", t);
+        nt_expression *right = malloc(sizeof(nt_expression));
+        right->self = EXPRESSION;
+        right->type = expr->type;
+        right->operator= _PRIMARY;
+        right->a = ntf_primary_2(helpname);
+
+        /* create new assign expression */
+        nt_expression *ret = malloc(sizeof(nt_expression));
+        ret->self = EXPRESSION;
+        ret->type = expr->type;
+        ret->operator= _ASSIGN;
+        ret->a = expr->a;
+        ret->b = right;
+
+        /* add new assign to list */
+        add_to_ll(new_statement_list, ret);
+
+        return 0;
+    case _PLUS:
+        return handle_operators(new_statement_list, _PLUS, expr);
+    default:
+    }
+}
+
+int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expression *expr)
+{
+    int ret_helper = inter_var;
+    inter_var++;
+
+    int ta = handle_expression(new_statement_list, expr->a);
+    int tb = handle_expression(new_statement_list, expr->b);
+
+    /* create primary expression for helper variable left side */
+    char helpnameL[10];
+    sprintf(helpnameL, "__h%d", ret_helper);
+    nt_expression *exL = malloc(sizeof(nt_expression));
+    exL->self = EXPRESSION;
+    exL->type = expr->type;
+    exL->operator= _PRIMARY;
+    exL->a = ntf_primary_2(helpnameL);
+
+    /* create primary expression for helper variable a */
+    char helpnameA[10];
+    sprintf(helpnameA, "__h%d", ta);
+    nt_expression *exA = malloc(sizeof(nt_expression));
+    exA->self = EXPRESSION;
+    exA->type = expr->type;
+    exA->operator= _PRIMARY;
+    exA->a = ntf_primary_2(helpnameA);
+
+    /* create primary expression for helper variable b */
+    char helpnameB[10];
+    sprintf(helpnameB, "__h%d", tb);
+    nt_expression *exB = malloc(sizeof(nt_expression));
+    exB->self = EXPRESSION;
+    exB->type = expr->type;
+    exB->operator= _PRIMARY;
+    exB->a = ntf_primary_2(helpnameB);
+
+    /* create op expression with primary helper */
+    nt_expression *right = malloc(sizeof(nt_expression));
+    right->self = EXPRESSION;
+    right->type = expr->type;
+    right->operator = op;
+    right->a = exA;
+    right->b = exB;
+
+    /* create assign expression */
+    nt_expression *ret = malloc(sizeof(nt_expression));
+    ret->self = EXPRESSION;
+    ret->type = expr->type;
+    ret->operator = _ASSIGN;
+    ret->a = exL;
+    ret->b = right;
+
+    return ret_helper;
 }
 
 void print_inter_code(linked_list *ic_ll)
@@ -906,4 +1027,30 @@ void merge_statement_lists(nt_stmt_list *stmt_list_dest, nt_stmt_list *stmt_list
         current = current->next;
     }
     free(stmt_list_source);
+}
+
+nt_expression *simple_assign(char *a, char *b, type t)
+{
+    nt_expression *left = malloc(sizeof(nt_expression));
+    left->type = t;
+    left->operator= _PRIMARY;
+    left->a = ntf_primary_2(a);
+
+    nt_expression *right = malloc(sizeof(nt_expression));
+    right->type = t;
+    right->operator= _PRIMARY;
+    right->a = ntf_primary_2(b);
+
+    nt_expression *ret = malloc(sizeof(nt_expression));
+    ret->type = t;
+    ret->operator= _ASSIGN;
+    ret->a = left;
+    ret->b = right;
+
+    return ret;
+}
+
+nt_expression *double_assign(char *a, char *b, char *c)
+{
+    nt_expression *ret = malloc(sizeof(nt_expression));
 }

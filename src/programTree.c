@@ -872,7 +872,7 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
             while (current_identifier_list_element)
             {
                 nt_identifier_declaration *identifier = (nt_identifier_declaration *)current_identifier_list_element->data;
-                add_to_ll(new_statement_list->statements, ntf_variable_declaration_2(declaration->type, identifier));
+                add_to_ll(new_statement_list->statements, ntf_stmt_2(ntf_variable_declaration_2(declaration->type, identifier)));
                 current_identifier_list_element = current_identifier_list_element->next;
             }
             break;
@@ -916,16 +916,16 @@ _UNKNOWN_OPERATOR = 0, //fail          a, b unused
         _GTEQ,                 //a >= b
         _PLUS,                 //a + b
         _MINUS,                //a - b
-    _UNARY_PLUS,           //a             b unused
-    _UNARY_MINUS,          //-a            b unused
+        _UNARY_PLUS,           //a             b unused
+        _UNARY_MINUS,          //-a            b unused
         _SHIFT_LEFT,           //a << b
         _SHIFT_RIGHT,          //a >> b
         _MUL,                  //a * b
         _DIV,                  //a / b
-    _ARRAY_ACCESS,         //a[b]          a is of type char*, b is of type nt_primary*
+        _ARRAY_ACCESS,         //a[b]          a is of type char*, b is of type nt_primary*
     _FUNCTION_CALL,        // a()          a is of type nt_function_call*, b is unused
-    _PRIMARY,              // a            a is of type nt_primary*, b is unused
-    _PARENTHESIS,          //(a)           b is unused
+        _PRIMARY,              // a            a is of type nt_primary*, b is unused
+        _PARENTHESIS,          //(a)           b is unused
 */
 int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
 {
@@ -1008,6 +1008,7 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
     case _LOGICAL_NOT:
     case _UNARY_MINUS:
     case _UNARY_PLUS:
+    case _PARENTHESIS:
     {
         int ret_helper = inter_var;
         inter_var++;
@@ -1046,6 +1047,31 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
         ret->operator= _ASSIGN;
         ret->a = left;
         ret->b = not;
+
+        add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
+        return ret_helper;
+    }
+    case _ARRAY_ACCESS:
+    {
+        int ret_helper = inter_var;
+        inter_var++;
+
+        /* create primary expression for left helper variable */
+        char *helpnameL = malloc(10 * sizeof(char));
+        snprintf(helpnameL, 10, "__h%d", ret_helper);
+        nt_expression *left = malloc(sizeof(nt_expression));
+        left->self = EXPRESSION;
+        left->type = expr->type;
+        left->operator= _PRIMARY;
+        left->a = ntf_primary_2(helpnameL);
+
+        /* create new assign expression */
+        nt_expression *ret = malloc(sizeof(nt_expression));
+        ret->self = EXPRESSION;
+        ret->type = expr->type;
+        ret->operator= _ASSIGN;
+        ret->a = left;
+        ret->b = expr;
 
         add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
         return ret_helper;
@@ -1109,7 +1135,7 @@ int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expressio
     ret->b = right;
 
     add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
-    
+
     return ret_helper;
 }
 

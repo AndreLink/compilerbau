@@ -293,6 +293,7 @@ void generate_function_definitions(linked_list *, linked_list *);
 void print_inter_code(linked_list *ic_ll);
 void print_function_declaration(type ret_type, char *id, linked_list *parameter_list);
 void print_function_declaration_statement_list(nt_stmt_list *statement_list);
+void handle_statement_list(nt_stmt_list *stmt_list, linked_list *ic_ll);
 
 
 #endif

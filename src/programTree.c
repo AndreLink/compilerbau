@@ -828,35 +828,43 @@ void generate_function_definitions(linked_list *function_definitions, linked_lis
     while (current_definition_list_element)
     {
         nt_function_definition *current_definition = (nt_function_definition *)(current_definition_list_element->data);
-        list_element *current_statement_list_element = current_definition->stmt_list->statements->first;
-        printf("declaration of function %s", current_definition->id); 
-        while (current_statement_list_element) {
-            nt_stmt *current_statement = current_statement_list_element->data;
-            switch(current_statement->represents) {
-                case STMT_BLOCK:
-                    printf("\tthis is a block"); 
-                    break;
-                case VARIABLE_DECLARATION:
-                    printf("\tthis is a var declaration"); 
-                    break;
-                case EXPRESSION:
-                    printf("\tthis is an expression"); 
-                    break;
-                case STMT_CONDITIONAL:
-                    printf("\tthis is a conditional"); 
-                    break;
-                case STMT_LOOP:
-                    printf("\tthis is a loop"); 
-                    break;
-                default:
-                    printf("\tdefault"); 
-            }
-            current_statement_list_element = current_statement_list_element->next;
-        }
+        nt_stmt_list *current_statement_list = current_definition->stmt_list;
+        printf("declaration of function %s\n", current_definition->id);
+        handle_statement_list(current_statement_list);
         add_to_ll(ic_ll, current_definition);
         current_definition_list_element = current_definition_list_element->next;
     }
     printf("function definitions END");
+}
+
+void handle_statement_list(nt_stmt_list *stmt_list, linked_list *ic_ll)
+{
+    list_element *current_statement_list_element = stmt_list->statements->first;
+    while (current_statement_list_element)
+    {
+        nt_stmt *current_statement = current_statement_list_element->data;
+        switch (current_statement->represents)
+        {
+        case STMT_BLOCK:
+            printf("\tthis is a block\n");
+            break;
+        case VARIABLE_DECLARATION:
+            printf("\tthis is a var declaration\n");
+            break;
+        case EXPRESSION:
+            printf("\tthis is an expression\n");
+            break;
+        case STMT_CONDITIONAL:
+            printf("\tthis is a conditional\n");
+            break;
+        case STMT_LOOP:
+            printf("\tthis is a loop\n");
+            break;
+        default:
+            printf("\tdefault\n");
+        }
+        current_statement_list_element = current_statement_list_element->next;
+    }
 }
 
 void print_inter_code(linked_list *ic_ll)
@@ -869,4 +877,3 @@ void print_inter_code(linked_list *ic_ll)
         current = current->next;
     }
 }
-

@@ -904,24 +904,24 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
 }
 /*
 _UNKNOWN_OPERATOR = 0, //fail          a, b unused
-    _ASSIGN,               //a = b
-    _LOGICAL_OR,           //a || b
-    _LOGICAL_AND,          //a && b
-    _LOGICAL_NOT,          //!a            b unused
-    _EQ,                   //a == b
-    _NE,                   //a != b
-    _LS,                   //a < b
-    _LSEQ,                 //a <= b
-    _GT,                   //a > b
-    _GTEQ,                 //a >= b
-    _PLUS,                 //a + b
-    _MINUS,                //a - b
+        _ASSIGN,               //a = b
+        _LOGICAL_OR,           //a || b
+        _LOGICAL_AND,          //a && b
+        _LOGICAL_NOT,          //!a            b unused
+        _EQ,                   //a == b
+        _NE,                   //a != b
+        _LS,                   //a < b
+        _LSEQ,                 //a <= b
+        _GT,                   //a > b
+        _GTEQ,                 //a >= b
+        _PLUS,                 //a + b
+        _MINUS,                //a - b
     _UNARY_PLUS,           //a             b unused
     _UNARY_MINUS,          //-a            b unused
-    _SHIFT_LEFT,           //a << b
-    _SHIFT_RIGHT,          //a >> b
-    _MUL,                  //a * b
-    _DIV,                  //a / b
+        _SHIFT_LEFT,           //a << b
+        _SHIFT_RIGHT,          //a >> b
+        _MUL,                  //a * b
+        _DIV,                  //a / b
     _ARRAY_ACCESS,         //a[b]          a is of type char*, b is of type nt_primary*
     _FUNCTION_CALL,        // a()          a is of type nt_function_call*, b is unused
     _PRIMARY,              // a            a is of type nt_primary*, b is unused
@@ -958,8 +958,21 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
         return 0;
     }
     case _PLUS:
+    case _MINUS:
+    case _LOGICAL_AND:
+    case _LOGICAL_OR:
+    case _EQ:
+    case _NE:
+    case _LS:
+    case _LSEQ:
+    case _GT:
+    case _GTEQ:
+    case _SHIFT_LEFT:
+    case _SHIFT_RIGHT:
+    case _MUL:
+    case _DIV:
     {
-        return handle_operators(new_statement_list, _PLUS, expr);
+        return handle_operators(new_statement_list, expr->operator, expr);
     }
     case _PRIMARY:
     {
@@ -988,6 +1001,51 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
         ret->operator= _ASSIGN;
         ret->a = left;
         ret->b = right;
+
+        add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
+        return ret_helper;
+    }
+    case _LOGICAL_NOT:
+    case _UNARY_MINUS:
+    case _UNARY_PLUS:
+    {
+        int ret_helper = inter_var;
+        inter_var++;
+
+        int t = handle_expression(new_statement_list, expr->a);
+
+        /* create primary expression for left helper variable */
+        char *helpnameL = malloc(10 * sizeof(char));
+        snprintf(helpnameL, 10, "__h%d", ret_helper);
+        nt_expression *left = malloc(sizeof(nt_expression));
+        left->self = EXPRESSION;
+        left->type = expr->type;
+        left->operator= _PRIMARY;
+        left->a = ntf_primary_2(helpnameL);
+
+        /* create primary expression for right helper variable */
+        char *helpnameR = malloc(10 * sizeof(char));
+        snprintf(helpnameR, 10, "__h%d", t);
+        nt_expression *right = malloc(sizeof(nt_expression));
+        right->self = EXPRESSION;
+        right->type = expr->type;
+        right->operator= _PRIMARY;
+        right->a = ntf_primary_2(helpnameR);
+
+        /* create logical not with primary */
+        nt_expression *not = malloc(sizeof(nt_expression));
+        not->self = EXPRESSION;
+        not->type = expr->type;
+        not->operator= expr->operator;
+        not->a = right;
+
+        /* create new assign expression */
+        nt_expression *ret = malloc(sizeof(nt_expression));
+        ret->self = EXPRESSION;
+        ret->type = expr->type;
+        ret->operator= _ASSIGN;
+        ret->a = left;
+        ret->b = not;
 
         add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
         return ret_helper;
@@ -1051,6 +1109,7 @@ int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expressio
     ret->b = right;
 
     add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
+    
     return ret_helper;
 }
 

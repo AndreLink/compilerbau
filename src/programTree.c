@@ -825,14 +825,12 @@ void generate_function_declarations(linked_list *function_declarations, linked_l
 
 void generate_function_definitions(linked_list *function_definitions, linked_list *ic_ll)
 {
-    printf("function definitions START");
     list_element *current_definition_list_element = function_definitions->first;
     while (current_definition_list_element)
     {
         /* get the definition and its statement list */
         nt_function_definition *current_definition = (nt_function_definition *)(current_definition_list_element->data);
         nt_stmt_list *current_statement_list = current_definition->stmt_list;
-        printf("declaration of function %s\n", current_definition->id);
 
         /* create new function definition object */
         nt_function_definition *ret = malloc(sizeof(nt_function_definition));
@@ -849,7 +847,6 @@ void generate_function_definitions(linked_list *function_definitions, linked_lis
         add_to_ll(ic_ll, ret);
         current_definition_list_element = current_definition_list_element->next;
     }
-    printf("function definitions END");
 }
 
 nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
@@ -862,32 +859,44 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
         switch (current_statement->represents)
         {
         case STMT_BLOCK:
+        {
             nt_stmt_block *block = current_statement->data;
             nt_stmt_list *new_block_stmt_list = handle_statement_list(block->stmts);
             merge_statement_lists(new_statement_list, new_block_stmt_list);
             break;
+        }
         case VARIABLE_DECLARATION:
+        {
             nt_variable_declaration *declaration = current_statement->data;
             list_element *current_identifier_list_element = declaration->identifiers->first;
             while (current_identifier_list_element)
             {
                 nt_identifier_declaration *identifier = (nt_identifier_declaration *)current_identifier_list_element->data;
-                add_to_ll(new_statement_list, ntf_variable_declaration_2(declaration->type, identifier));
+                add_to_ll(new_statement_list->statements, ntf_variable_declaration_2(declaration->type, identifier));
                 current_identifier_list_element = current_identifier_list_element->next;
             }
             break;
+        }
         case EXPRESSION:
+        {
             nt_expression *expr = current_statement->data;
             handle_expression(new_statement_list, expr);
             break;
+        }
         case STMT_CONDITIONAL:
+        {
             printf("\tthis is a conditional\n");
             break;
+        }
         case STMT_LOOP:
+        {
             printf("\tthis is a loop\n");
             break;
+        }
         default:
+        {
             printf("\tdefault\n");
+        }
         }
         current_statement_list_element = current_statement_list_element->next;
     }
@@ -923,6 +932,7 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
     switch (expr->operator)
     {
     case _ASSIGN:
+    {
         int t = handle_expression(new_statement_list, expr->b);
 
         /* create primary expression for helper variable */
@@ -943,12 +953,18 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
         ret->b = right;
 
         /* add new assign to list */
-        add_to_ll(new_statement_list, ret);
+        add_to_ll(new_statement_list->statements, ret);
 
         return 0;
+    }
     case _PLUS:
+    {
         return handle_operators(new_statement_list, _PLUS, expr);
+    }
     default:
+    {
+        return -1;
+    }
     }
 }
 
@@ -991,7 +1007,7 @@ int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expressio
     nt_expression *right = malloc(sizeof(nt_expression));
     right->self = EXPRESSION;
     right->type = expr->type;
-    right->operator = op;
+    right->operator= op;
     right->a = exA;
     right->b = exB;
 
@@ -999,7 +1015,7 @@ int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expressio
     nt_expression *ret = malloc(sizeof(nt_expression));
     ret->self = EXPRESSION;
     ret->type = expr->type;
-    ret->operator = _ASSIGN;
+    ret->operator= _ASSIGN;
     ret->a = exL;
     ret->b = right;
 

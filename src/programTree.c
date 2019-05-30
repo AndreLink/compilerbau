@@ -827,18 +827,32 @@ void generate_function_definitions(linked_list *function_definitions, linked_lis
     list_element *current_definition_list_element = function_definitions->first;
     while (current_definition_list_element)
     {
+        /* get the definition and its statement list */
         nt_function_definition *current_definition = (nt_function_definition *)(current_definition_list_element->data);
         nt_stmt_list *current_statement_list = current_definition->stmt_list;
         printf("declaration of function %s\n", current_definition->id);
-        handle_statement_list(current_statement_list);
-        add_to_ll(ic_ll, current_definition);
+        
+        /* create new function definition object */
+        nt_function_definition *ret = malloc(sizeof(nt_function_definition));
+        ret->self = FUNCTION_DEFINITION;
+        ret->id = current_definition;
+        ret->return_type = current_definition->return_type;
+        ret->params = current_definition->params; 
+
+        /* add statements to definition */
+        ret->stmt_list = handle_statement_list(current_statement_list);
+        ret->statements = ret->stmt_list->statements;
+        
+        /* add definition to the ist and go to next element */
+        add_to_ll(ic_ll, ret);
         current_definition_list_element = current_definition_list_element->next;
     }
     printf("function definitions END");
 }
 
-void handle_statement_list(nt_stmt_list *stmt_list, linked_list *ic_ll)
+nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
 {
+    nt_stmt_list *new_statement_list = ntf_stmt_list_1();
     list_element *current_statement_list_element = stmt_list->statements->first;
     while (current_statement_list_element)
     {
@@ -847,6 +861,9 @@ void handle_statement_list(nt_stmt_list *stmt_list, linked_list *ic_ll)
         {
         case STMT_BLOCK:
             printf("\tthis is a block\n");
+            nt_stmt_block *block = current_statement->data;
+            nt_stmt_list* new_block_stmt_list = handle_statement_list(block->stmts);
+            merge_statement_lists(new_statement_list, new_block_stmt_list);
             break;
         case VARIABLE_DECLARATION:
             printf("\tthis is a var declaration\n");
@@ -865,6 +882,7 @@ void handle_statement_list(nt_stmt_list *stmt_list, linked_list *ic_ll)
         }
         current_statement_list_element = current_statement_list_element->next;
     }
+    return new_statement_list;
 }
 
 void print_inter_code(linked_list *ic_ll)
@@ -876,4 +894,15 @@ void print_inter_code(linked_list *ic_ll)
         printf("\n");
         current = current->next;
     }
+}
+
+void merge_statement_lists(nt_stmt_list *stmt_list_dest, nt_stmt_list *stmt_list_source)
+{
+    list_element *current = stmt_list_source->statements->first;
+    while (current) {
+        nt_stmt *statement = (nt_stmt*) current->data;
+        ntf_stmt_list_2(stmt_list_dest, statement);
+        current = current->next;
+    }
+    free(stmt_list_source);
 }

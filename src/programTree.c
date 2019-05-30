@@ -823,13 +823,40 @@ void generate_function_declarations(linked_list *function_declarations, linked_l
 
 void generate_function_definitions(linked_list *function_definitions, linked_list *ic_ll)
 {
+    printf("function definitions START");
     list_element *current_definition_list_element = function_definitions->first;
     while (current_definition_list_element)
     {
         nt_function_definition *current_definition = (nt_function_definition *)(current_definition_list_element->data);
+        list_element *current_statement_list_element = current_definition->stmt_list->statements->first;
+        printf("declaration of function %s", current_definition->id); 
+        while (current_statement_list_element) {
+            nt_stmt *current_statement = current_statement_list_element->data;
+            switch(current_statement->represents) {
+                case STMT_BLOCK:
+                    printf("\tthis is a block"); 
+                    break;
+                case VARIABLE_DECLARATION:
+                    printf("\tthis is a var declaration"); 
+                    break;
+                case EXPRESSION:
+                    printf("\tthis is an expression"); 
+                    break;
+                case STMT_CONDITIONAL:
+                    printf("\tthis is a conditional"); 
+                    break;
+                case STMT_LOOP:
+                    printf("\tthis is a loop"); 
+                    break;
+                default:
+                    printf("\tdefault"); 
+            }
+            current_statement_list_element = current_statement_list_element->next;
+        }
         add_to_ll(ic_ll, current_definition);
         current_definition_list_element = current_definition_list_element->next;
     }
+    printf("function definitions END");
 }
 
 void print_inter_code(linked_list *ic_ll)

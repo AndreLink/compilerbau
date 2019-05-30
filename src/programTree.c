@@ -936,8 +936,8 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
         int t = handle_expression(new_statement_list, expr->b);
 
         /* create primary expression for helper variable */
-        char helpname[10];
-        sprintf(helpname, "__h%d", t);
+        char *helpname = malloc(10 * sizeof(char));
+        snprintf(helpname, 10, "__h%d", t);
         nt_expression *right = malloc(sizeof(nt_expression));
         right->self = EXPRESSION;
         right->type = expr->type;
@@ -953,13 +953,44 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
         ret->b = right;
 
         /* add new assign to list */
-        add_to_ll(new_statement_list->statements, ret);
+        add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
 
         return 0;
     }
     case _PLUS:
     {
         return handle_operators(new_statement_list, _PLUS, expr);
+    }
+    case _PRIMARY:
+    {
+        int ret_helper = inter_var;
+        inter_var++;
+        /* create primary expression for helper variable */
+        char *helpname = malloc(10 * sizeof(char));
+        snprintf(helpname, 10, "__h%d", ret_helper);
+        nt_expression *left = malloc(sizeof(nt_expression));
+        left->self = EXPRESSION;
+        left->type = expr->type;
+        left->operator= _PRIMARY;
+        left->a = ntf_primary_2(helpname);
+
+        /* create primary expression for the actual primary */
+        nt_expression *right = malloc(sizeof(nt_expression));
+        right->self = EXPRESSION;
+        right->type = expr->type;
+        right->operator= _PRIMARY;
+        right->a = expr->a;
+
+        /* create new assign expression */
+        nt_expression *ret = malloc(sizeof(nt_expression));
+        ret->self = EXPRESSION;
+        ret->type = expr->type;
+        ret->operator= _ASSIGN;
+        ret->a = left;
+        ret->b = right;
+
+        add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
+        return ret_helper;
     }
     default:
     {
@@ -977,8 +1008,8 @@ int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expressio
     int tb = handle_expression(new_statement_list, expr->b);
 
     /* create primary expression for helper variable left side */
-    char helpnameL[10];
-    sprintf(helpnameL, "__h%d", ret_helper);
+    char *helpnameL = malloc(10 * sizeof(char));
+    snprintf(helpnameL, 10, "__h%d", ret_helper);
     nt_expression *exL = malloc(sizeof(nt_expression));
     exL->self = EXPRESSION;
     exL->type = expr->type;
@@ -986,8 +1017,8 @@ int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expressio
     exL->a = ntf_primary_2(helpnameL);
 
     /* create primary expression for helper variable a */
-    char helpnameA[10];
-    sprintf(helpnameA, "__h%d", ta);
+    char *helpnameA = malloc(10 * sizeof(char));
+    snprintf(helpnameA, 10, "__h%d", ta);
     nt_expression *exA = malloc(sizeof(nt_expression));
     exA->self = EXPRESSION;
     exA->type = expr->type;
@@ -995,8 +1026,8 @@ int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expressio
     exA->a = ntf_primary_2(helpnameA);
 
     /* create primary expression for helper variable b */
-    char helpnameB[10];
-    sprintf(helpnameB, "__h%d", tb);
+    char *helpnameB = malloc(10 * sizeof(char));
+    snprintf(helpnameB, 10, "__h%d", tb);
     nt_expression *exB = malloc(sizeof(nt_expression));
     exB->self = EXPRESSION;
     exB->type = expr->type;
@@ -1019,6 +1050,7 @@ int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expressio
     ret->a = exL;
     ret->b = right;
 
+    add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
     return ret_helper;
 }
 

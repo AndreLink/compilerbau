@@ -121,9 +121,9 @@
 
 %left SHIFT_LEFT SHIFT_RIGHT
 
+%right ASSIGN
 %left PLUS MINUS
 %left MUL DIV
-%right ASSIGN
 
 %right UNARY_PLUS UNARY_MINUS
 

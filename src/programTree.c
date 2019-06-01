@@ -1076,6 +1076,41 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
         add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
         return ret_helper;
     }
+    case _FUNCTION_CALL:
+    {
+        nt_function_call *fun = expr->a;
+        nt_function_call_parameters *params = fun->params;
+
+        /* create new function parameter */
+        nt_function_call_parameters *new_params = malloc(sizeof(nt_function_call_parameters));
+        new_params->self = FUNCTION_CALL_PARAMETERS;
+        new_params->expressions = new_ll();
+
+        /* loop through old parameters, make a new one for each old */
+        list_element *current_param = params->expressions->first;
+        while (current_param)
+        {
+            int t = handle_expression(new_statement_list, (nt_expression *)current_param->data);
+            nt_expression *new_arg = primary_helper_expression(t, expr);
+            ntf_function_call_parameters_1(new_params, new_arg);
+            current_param = current_param->next;
+        }
+
+        //add_to_ll(new_statement_list->statements, ntf_function_call_2(fun->func_id, new_params));
+
+        /* create helper variable to save functon return value */
+        if (fun->type == VOID_)
+        {
+            return -1;
+        }
+        int ret_helper = inter_var;
+        inter_var++;
+        add_helper_assign_expression_to_list(new_statement_list,
+            primary_helper_expression(ret_helper, expr),
+            ntf_function_call_2(fun->func_id, new_params),
+            expr);
+        return ret_helper;
+    }
     default:
     {
         return -1;
@@ -1161,7 +1196,7 @@ void merge_statement_lists(nt_stmt_list *stmt_list_dest, nt_stmt_list *stmt_list
     }
     free(stmt_list_source);
 }
-
+/*
 nt_expression *simple_assign(char *a, char *b, type t)
 {
     nt_expression *left = malloc(sizeof(nt_expression));
@@ -1181,6 +1216,37 @@ nt_expression *simple_assign(char *a, char *b, type t)
     ret->b = right;
 
     return ret;
+}
+*/
+nt_expression *primary_helper_expression(int helper_var_index, nt_expression *expr)
+{
+    if (helper_var_index < 0)
+    {
+        return NULL;
+    }
+    char *helpname = malloc(10 * sizeof(char));
+    snprintf(helpname, 10, "__h%d", helper_var_index);
+    nt_expression *ret = malloc(sizeof(nt_expression));
+    ret->self = EXPRESSION;
+    ret->type = expr->type;
+    ret->operator= _PRIMARY;
+    ret->a = ntf_primary_2(helpname);
+    return ret;
+}
+
+void add_helper_assign_expression_to_list(nt_stmt_list *new_statement_list, nt_expression *primary_helper, nt_expression *right_side, nt_expression *expr)
+{
+    if (!primary_helper)
+    {
+        return;
+    }
+    nt_expression *ret = malloc(sizeof(nt_expression));
+    ret->self = EXPRESSION;
+    ret->type = expr->type;
+    ret->operator= _ASSIGN;
+    ret->a = primary_helper;
+    ret->b = right_side;
+    add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
 }
 
 nt_expression *double_assign(char *a, char *b, char *c)

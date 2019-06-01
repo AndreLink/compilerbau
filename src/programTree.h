@@ -294,6 +294,7 @@ void print_inter_code(linked_list *ic_ll);
 void print_function_declaration(type ret_type, char *id, linked_list *parameter_list);
 void print_function_declaration_statement_list(nt_stmt_list *statement_list);
 nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list);
+void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_statement_list);
 void merge_statement_lists(nt_stmt_list *stmt_list_dest, nt_stmt_list *stmt_list_source);
 int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr);
 int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expression *expr);

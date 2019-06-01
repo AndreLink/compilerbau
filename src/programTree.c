@@ -856,62 +856,67 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
     while (current_statement_list_element)
     {
         nt_stmt *current_statement = current_statement_list_element->data;
-        switch (current_statement->represents)
+        handle_single_statement(current_statement, new_statement_list);
+        current_statement_list_element = current_statement_list_element->next;
+    }
+    return new_statement_list;
+}
+
+void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_statement_list)
+{
+    switch (current_statement->represents)
+    {
+    case STMT_BLOCK:
+    {
+        nt_stmt_block *block = current_statement->data;
+        nt_stmt_list *new_block_stmt_list = handle_statement_list(block->stmts);
+        merge_statement_lists(new_statement_list, new_block_stmt_list);
+        break;
+    }
+    case VARIABLE_DECLARATION:
+    {
+        nt_variable_declaration *declaration = current_statement->data;
+        list_element *current_identifier_list_element = declaration->identifiers->first;
+        while (current_identifier_list_element)
         {
-        case STMT_BLOCK:
-        {
-            nt_stmt_block *block = current_statement->data;
-            nt_stmt_list *new_block_stmt_list = handle_statement_list(block->stmts);
-            merge_statement_lists(new_statement_list, new_block_stmt_list);
-            break;
+            nt_identifier_declaration *identifier = (nt_identifier_declaration *)current_identifier_list_element->data;
+            add_to_ll(new_statement_list->statements, ntf_stmt_2(ntf_variable_declaration_2(declaration->type, identifier)));
+            current_identifier_list_element = current_identifier_list_element->next;
         }
-        case VARIABLE_DECLARATION:
-        {
-            nt_variable_declaration *declaration = current_statement->data;
-            list_element *current_identifier_list_element = declaration->identifiers->first;
-            while (current_identifier_list_element)
-            {
-                nt_identifier_declaration *identifier = (nt_identifier_declaration *)current_identifier_list_element->data;
-                add_to_ll(new_statement_list->statements, ntf_stmt_2(ntf_variable_declaration_2(declaration->type, identifier)));
-                current_identifier_list_element = current_identifier_list_element->next;
-            }
-            break;
-        }
-        case EXPRESSION:
-        {
-            nt_expression *expr = current_statement->data;
-            handle_expression(new_statement_list, expr);
-            break;
-        }
-        case STMT_CONDITIONAL:
-        {
-            nt_stmt_conditional *conditional = current_statement->data;
+        break;
+    }
+    case EXPRESSION:
+    {
+        nt_expression *expr = current_statement->data;
+        handle_expression(new_statement_list, expr);
+        break;
+    }
+    case STMT_CONDITIONAL:
+    {
+        nt_stmt_conditional *conditional = current_statement->data;
 
-            int t = handle_expression(new_statement_list, conditional->condition);
-            nt_expression *condition_expression = primary_helper_expression(t);
+        int t = handle_expression(new_statement_list, conditional->condition);
+        nt_expression *condition_expression = primary_helper_expression(t);
 
-            nt_stmt_list *if_stmt_list = handle_statement_list(conditional->body);
-            nt_stmt_list *else_stmt_list = handle_statement_list(conditional->body_else);
+        int label1value = inter_label;
+        inter_label++;
+        int label2value = inter_label;
+        inter_label++;
 
-            int label1value = inter_label;
-            inter_label++;
-            int label2value = inter_label;
-            inter_label++;
+        nt_stmt *label1 = create_label(label1value);
+        nt_stmt *label2 = create_label(label2value);
 
-            nt_stmt *label1 = create_label(label1value);
-            nt_stmt *label2 = create_label(label2value);
+        nt_stmt *goto_if = create_goto(label1value, condition_expression);
+        nt_stmt *goto_else = create_goto(label2value, 0);
 
-            nt_stmt *goto_if = create_goto(label1value, condition_expression);
-            nt_stmt *goto_else = create_goto(label2value, 0);
+        add_to_ll(new_statement_list->statements, goto_if);
+        handle_single_statement(new_statement_list, conditional->body_else);
+        add_to_ll(new_statement_list->statements, goto_else);
+        add_to_ll(new_statement_list->statements, label1);
+        handle_single_statement(new_statement_list, conditional->body);
+        add_to_ll(new_statement_list->statements, label2);
 
-            add_to_ll(new_statement_list->statements, goto_if);
-            merge_statement_lists(new_statement_list, else_stmt_list);
-            add_to_ll(new_statement_list->statements, goto_else);
-            add_to_ll(new_statement_list->statements, label1);
-            merge_statement_lists(new_statement_list, if_stmt_list);
-            add_to_ll(new_statement_list->statements, label2);
-
-            /*
+        /*
             typedef struct nt_stmt_conditional
             {
                 NT_TYPE self;
@@ -920,11 +925,11 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
                 nt_stmt *body_else;
             } nt_stmt_conditional;
             */
-            break;
-        }
-        case STMT_LOOP:
-        {
-            /*
+        break;
+    }
+    case STMT_LOOP:
+    {
+        /*
             typedef struct nt_stmt_loop
             {
                 NT_TYPE self;
@@ -933,34 +938,30 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
                 LOOPTYPE loop_type;
             } nt_stmt_loop;
 */
-            nt_stmt_loop *loop = current_statement->data;
-            int t = handle_expression(new_statement_list, loop->condition);
-            nt_expression *condition_expression = primary_helper_expression(t);
-            printf("\tthis is a loop\n");
-            break;
-        }
-        case STMT_RETURN_EXPRESSION:
-        {
-            int t = handle_expression(new_statement_list, current_statement->data);
-            nt_expression *return_expression = primary_helper_expression(t);
-            add_to_ll(new_statement_list->statements, ntf_stmt_6(return_expression));
-            break;
-        }
-        case STMT_RETURN:
-        {
-            add_to_ll(new_statement_list->statements, current_statement);
-            break;
-        }
-        default:
-        {
-            printf("\tdefault\n");
-        }
-        }
-        current_statement_list_element = current_statement_list_element->next;
+        nt_stmt_loop *loop = current_statement->data;
+        int t = handle_expression(new_statement_list, loop->condition);
+        nt_expression *condition_expression = primary_helper_expression(t);
+        printf("\tthis is a loop\n");
+        break;
     }
-    return new_statement_list;
+    case STMT_RETURN_EXPRESSION:
+    {
+        int t = handle_expression(new_statement_list, current_statement->data);
+        nt_expression *return_expression = primary_helper_expression(t);
+        add_to_ll(new_statement_list->statements, ntf_stmt_6(return_expression));
+        break;
+    }
+    case STMT_RETURN:
+    {
+        add_to_ll(new_statement_list->statements, current_statement);
+        break;
+    }
+    default:
+    {
+        printf("\tdefault\n");
+    }
+    }
 }
-
 int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
 {
     switch (expr->operator)
@@ -1232,12 +1233,12 @@ nt_stmt *create_goto(int goto_label, nt_expression *condition)
     return rets;
 }
 
-nt_stmt *create_label(int label)
+nt_stmt *create_label(int labelnumber)
 {
     nt_stmt_label *ret = malloc(sizeof(nt_stmt_label));
     ret->self = STMT_LABEL;
     char *label = malloc(10 * sizeof(char));
-    snprintf(label, 10, "__label%d", label);
+    snprintf(label, 10, "__label%d", labelnumber);
     ret->id = label;
 
     nt_stmt *rets = malloc(sizeof(nt_stmt));

@@ -1216,7 +1216,7 @@ void add_helper_assign_expression_to_list(nt_stmt_list *new_statement_list, nt_e
     add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
 }
 
-nt_stmt_goto *create_goto(int goto_label, nt_expression *condition)
+nt_stmt *create_goto(int goto_label, nt_expression *condition)
 {
     nt_stmt_goto *ret = malloc(sizeof(nt_stmt_goto));
     ret->self = STMT_GOTO;
@@ -1224,15 +1224,25 @@ nt_stmt_goto *create_goto(int goto_label, nt_expression *condition)
     char *label = malloc(10 * sizeof(char));
     snprintf(label, 10, "__label%d", goto_label);
     ret->label = label;
-    return ret;
+
+    nt_stmt *rets = malloc(sizeof(nt_stmt));
+    rets->self = STMT;
+    rets->represents = STMT_GOTO;
+    rets->data = ret;
+    return rets;
 }
 
-nt_stmt_label *create_label(int label)
+nt_stmt *create_label(int label)
 {
     nt_stmt_label *ret = malloc(sizeof(nt_stmt_label));
     ret->self = STMT_LABEL;
     char *label = malloc(10 * sizeof(char));
     snprintf(label, 10, "__label%d", label);
-    ret->label = label;
-    return ret;
+    ret->id = label;
+
+    nt_stmt *rets = malloc(sizeof(nt_stmt));
+    rets->self = STMT;
+    rets->represents = STMT_GOTO;
+    rets->data = ret;
+    return rets;
 }

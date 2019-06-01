@@ -299,7 +299,7 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr);
 int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expression *expr);
 nt_expression *primary_helper_expression(int helper_var_index);
 void add_helper_assign_expression_to_list(nt_stmt_list *new_statement_list, nt_expression *primary_helper, nt_expression *right_side, nt_expression *expr);
-nt_stmt_goto *create_goto(int goto_label, nt_expression *condition);
-nt_stmt_label *create_label(int label);
+nt_stmt *create_goto(int goto_label, nt_expression *condition);
+nt_stmt *create_label(int label);
 
 #endif

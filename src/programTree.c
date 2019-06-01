@@ -907,13 +907,13 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
         nt_stmt *label2 = create_label(label2value);
 
         nt_stmt *goto_if = create_goto(label1value, condition_expression);
-        nt_stmt *goto_else = create_goto(label2value, 0);
+        nt_stmt *goto_else = create_goto(label2value, ntf_expression_primary(ntf_primary_1(1)));
 
         add_to_ll(new_statement_list->statements, goto_if);
-        handle_single_statement(new_statement_list, conditional->body_else);
+        handle_single_statement(conditional->body_else, new_statement_list);
         add_to_ll(new_statement_list->statements, goto_else);
         add_to_ll(new_statement_list->statements, label1);
-        handle_single_statement(new_statement_list, conditional->body);
+        handle_single_statement(conditional->body, new_statement_list);
         add_to_ll(new_statement_list->statements, label2);
 
         /*
@@ -1243,7 +1243,7 @@ nt_stmt *create_label(int labelnumber)
 
     nt_stmt *rets = malloc(sizeof(nt_stmt));
     rets->self = STMT;
-    rets->represents = STMT_GOTO;
+    rets->represents = STMT_LABEL;
     rets->data = ret;
     return rets;
 }

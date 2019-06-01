@@ -893,6 +893,17 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
             printf("\tthis is a loop\n");
             break;
         }
+        case STMT_RETURN_EXPRESSION:
+        {
+            int t = handle_expression(new_statement_list, current_statement->data);
+            nt_expression *return_expression = primary_helper_expression(t);
+            add_to_ll(new_statement_list->statements, ntf_stmt_6(return_expression));
+
+        }
+        case STMT_RETURN:
+        {
+            add_to_ll(new_statement_list->statements, current_statement);
+        }
         default:
         {
             printf("\tdefault\n");
@@ -923,7 +934,7 @@ _UNKNOWN_OPERATOR = 0, //fail          a, b unused
         _MUL,                  //a * b
         _DIV,                  //a / b
         _ARRAY_ACCESS,         //a[b]          a is of type char*, b is of type nt_primary*
-    _FUNCTION_CALL,        // a()          a is of type nt_function_call*, b is unused
+        _FUNCTION_CALL,        // a()          a is of type nt_function_call*, b is unused
         _PRIMARY,              // a            a is of type nt_primary*, b is unused
         _PARENTHESIS,          //(a)           b is unused
 */
@@ -971,8 +982,7 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
         int ret_helper = inter_var;
         inter_var++;
 
-            nt_expression *left = primary_helper_expression(ret_helper);
-
+        nt_expression *left = primary_helper_expression(ret_helper);
 
         /* create primary expression for the actual primary */
         nt_expression *right = malloc(sizeof(nt_expression));
@@ -1068,13 +1078,15 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
         {
             add_to_ll(new_statement_list->statements, ntf_stmt_3(fe));
             return -1;
-        } else {
+        }
+        else
+        {
             int ret_helper = inter_var;
             inter_var++;
             add_helper_assign_expression_to_list(new_statement_list,
-                primary_helper_expression(ret_helper),
-                fe,
-                expr);
+                                                 primary_helper_expression(ret_helper),
+                                                 fe,
+                                                 expr);
             return ret_helper;
         }
     }
@@ -1141,28 +1153,7 @@ void merge_statement_lists(nt_stmt_list *stmt_list_dest, nt_stmt_list *stmt_list
     }
     free(stmt_list_source);
 }
-/*
-nt_expression *simple_assign(char *a, char *b, type t)
-{
-    nt_expression *left = malloc(sizeof(nt_expression));
-    left->type = t;
-    left->operator= _PRIMARY;
-    left->a = ntf_primary_2(a);
 
-    nt_expression *right = malloc(sizeof(nt_expression));
-    right->type = t;
-    right->operator= _PRIMARY;
-    right->a = ntf_primary_2(b);
-
-    nt_expression *ret = malloc(sizeof(nt_expression));
-    ret->type = t;
-    ret->operator= _ASSIGN;
-    ret->a = left;
-    ret->b = right;
-
-    return ret;
-}
-*/
 nt_expression *primary_helper_expression(int helper_var_index)
 {
     if (helper_var_index < 0)
@@ -1192,9 +1183,4 @@ void add_helper_assign_expression_to_list(nt_stmt_list *new_statement_list, nt_e
     ret->a = primary_helper;
     ret->b = right_side;
     add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
-}
-
-nt_expression *double_assign(char *a, char *b, char *c)
-{
-    nt_expression *ret = malloc(sizeof(nt_expression));
 }

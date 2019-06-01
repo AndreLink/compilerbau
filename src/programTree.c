@@ -898,11 +898,13 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
             int t = handle_expression(new_statement_list, current_statement->data);
             nt_expression *return_expression = primary_helper_expression(t);
             add_to_ll(new_statement_list->statements, ntf_stmt_6(return_expression));
+            break;
 
         }
         case STMT_RETURN:
         {
             add_to_ll(new_statement_list->statements, current_statement);
+            break;
         }
         default:
         {
@@ -1056,23 +1058,28 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
         nt_function_call *fun = expr->a;
         nt_function_call_parameters *params = fun->params;
 
-        /* create new function parameter */
-        nt_function_call_parameters *new_params = malloc(sizeof(nt_function_call_parameters));
-        new_params->self = FUNCTION_CALL_PARAMETERS;
-        new_params->expressions = new_ll();
+        nt_function_call *fc;
 
-        /* loop through old parameters, make a new one for each old */
-        list_element *current_param = params->expressions->first;
-        while (current_param)
-        {
-            int t = handle_expression(new_statement_list, (nt_expression *)current_param->data);
-            nt_expression *new_arg = primary_helper_expression(t);
-            ntf_function_call_parameters_1(new_params, new_arg);
-            current_param = current_param->next;
+        if (params) {
+            /* create new function parameter */
+            nt_function_call_parameters *new_params = malloc(sizeof(nt_function_call_parameters));
+            new_params->self = FUNCTION_CALL_PARAMETERS;
+            new_params->expressions = new_ll();
+
+            /* loop through old parameters, make a new one for each old */
+            list_element *current_param = params->expressions->first;
+            while (current_param)
+            {
+                int t = handle_expression(new_statement_list, (nt_expression *)current_param->data);
+                nt_expression *new_arg = primary_helper_expression(t);
+                ntf_function_call_parameters_1(new_params, new_arg);
+                current_param = current_param->next;
+            }
+            fc = ntf_function_call_2(fun->func_id, new_params);   
+        } else {
+            fc = ntf_function_call_1(fun->func_id);
         }
 
-        /* if void, add function call to list, else add assign to list */
-        nt_function_call *fc = ntf_function_call_2(fun->func_id, new_params);
         nt_expression *fe = ntf_expression_function_call(fc);
         if (fun->type == VOID_)
         {

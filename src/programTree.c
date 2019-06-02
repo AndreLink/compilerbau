@@ -890,7 +890,7 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
     case EXPRESSION:
     {
         nt_expression *expr = current_statement->data;
-        handle_expression(new_statement_list, expr, help_var_declarations, help_var_declarations);
+        handle_expression(new_statement_list, expr, help_var_declarations);
         break;
     }
     case STMT_CONDITIONAL:

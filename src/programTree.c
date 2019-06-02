@@ -890,14 +890,14 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
     case EXPRESSION:
     {
         nt_expression *expr = current_statement->data;
-        handle_expression(new_statement_list, expr, help_var_declarations);
+        handle_expression(new_statement_list, expr, help_var_declarations, help_var_declarations);
         break;
     }
     case STMT_CONDITIONAL:
     {
         nt_stmt_conditional *conditional = current_statement->data;
 
-        int t = handle_expression(new_statement_list, conditional->condition);
+        int t = handle_expression(new_statement_list, conditional->condition, help_var_declarations);
         nt_expression *condition_expression = primary_helper_expression(t, _INT, help_var_declarations);
 
         int label1value = inter_label;
@@ -945,7 +945,7 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
             nt_stmt *goto_back_to_start = create_goto(label1value, ntf_expression_primary(ntf_primary_1(1)));
 
             add_to_ll(new_statement_list->statements, label1);                                               // :L1
-            int t = handle_expression(new_statement_list, loop->condition);                                  // h = A
+            int t = handle_expression(new_statement_list, loop->condition, help_var_declarations);                                  // h = A
             nt_expression *condition_expression = primary_helper_expression(t, _INT, help_var_declarations); // ...
             nt_stmt *goto_if = create_goto(label2value, condition_expression);                               // ...
             add_to_ll(new_statement_list->statements, goto_if);                                              // if A goto L2
@@ -961,7 +961,7 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
         {
             add_to_ll(new_statement_list->statements, label1);                                               // :L1
             handle_single_statement(loop->body, new_statement_list);                                         // body()
-            int t = handle_expression(new_statement_list, loop->condition);                                  // h = A
+            int t = handle_expression(new_statement_list, loop->condition, help_var_declarations);                                  // h = A
             nt_expression *condition_expression = primary_helper_expression(t, _INT, help_var_declarations); // ...
             nt_stmt *goto_if = create_goto(label1value, condition_expression);                               // ...
             add_to_ll(new_statement_list->statements, goto_if);                                              // if A goto L1
@@ -977,7 +977,7 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
     }
     case STMT_RETURN_EXPRESSION:
     {
-        int t = handle_expression(new_statement_list, current_statement->data);
+        int t = handle_expression(new_statement_list, current_statement->data, help_var_declarations);
         nt_expression *return_expression = primary_helper_expression(t, _INT, help_var_declarations);
         add_to_ll(new_statement_list->statements, ntf_stmt_6(return_expression));
         break;
@@ -999,7 +999,7 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr, nt_
     {
     case _ASSIGN:
     {
-        int t = handle_expression(new_statement_list, expr->b);
+        int t = handle_expression(new_statement_list, expr->b, help_var_declarations);
         nt_expression *right = primary_helper_expression(t, _INT, help_var_declarations);
 
         /* create new assign expression */
@@ -1030,7 +1030,7 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr, nt_
     case _MUL:
     case _DIV:
     {
-        return handle_operators(new_statement_list, expr->operator, expr);
+        return handle_operators(new_statement_list, expr->operator, expr, help_var_declarations);
     }
     case _PRIMARY:
     {
@@ -1065,7 +1065,7 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr, nt_
         int ret_helper = inter_var;
         inter_var++;
 
-        int t = handle_expression(new_statement_list, expr->a);
+        int t = handle_expression(new_statement_list, expr->a, help_var_declarations);
 
         nt_expression *left = primary_helper_expression(ret_helper, _INT, help_var_declarations);
         nt_expression *right = primary_helper_expression(t, _INT, help_var_declarations);
@@ -1124,7 +1124,7 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr, nt_
             list_element *current_param = params->expressions->first;
             while (current_param)
             {
-                int t = handle_expression(new_statement_list, (nt_expression *)current_param->data);
+                int t = handle_expression(new_statement_list, (nt_expression *)current_param->data, help_var_declarations);
                 nt_expression *new_arg = primary_helper_expression(t, _INT, help_var_declarations);
                 ntf_function_call_parameters_1(new_params, new_arg);
                 current_param = current_param->next;
@@ -1160,13 +1160,13 @@ int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr, nt_
     }
 }
 
-int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expression *expr)
+int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expression *expr, nt_stmt_list *help_var_declarations)
 {
     int ret_helper = inter_var;
     inter_var++;
 
-    int ta = handle_expression(new_statement_list, expr->a);
-    int tb = handle_expression(new_statement_list, expr->b);
+    int ta = handle_expression(new_statement_list, expr->a, help_var_declarations);
+    int tb = handle_expression(new_statement_list, expr->b, help_var_declarations);
 
     /* create helper variables */
     nt_expression *exL = primary_helper_expression(ret_helper, _INT, help_var_declarations);

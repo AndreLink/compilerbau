@@ -909,39 +909,69 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
         nt_stmt *goto_if = create_goto(label1value, condition_expression);
         nt_stmt *goto_else = create_goto(label2value, ntf_expression_primary(ntf_primary_1(1)));
 
-        add_to_ll(new_statement_list->statements, goto_if);
-        handle_single_statement(conditional->body_else, new_statement_list);
-        add_to_ll(new_statement_list->statements, goto_else);
-        add_to_ll(new_statement_list->statements, label1);
-        handle_single_statement(conditional->body, new_statement_list);
-        add_to_ll(new_statement_list->statements, label2);
+        add_to_ll(new_statement_list->statements, goto_if);                  // if A goto L1
+        handle_single_statement(conditional->body_else, new_statement_list); // else()
+        add_to_ll(new_statement_list->statements, goto_else);                // if 1 goto L2
+        add_to_ll(new_statement_list->statements, label1);                   // :L1
+        handle_single_statement(conditional->body, new_statement_list);      // if()
+        add_to_ll(new_statement_list->statements, label2);                   // :L2
 
-        /*
-            typedef struct nt_stmt_conditional
-            {
-                NT_TYPE self;
-                nt_expression *condition;
-                nt_stmt *body;
-                nt_stmt *body_else;
-            } nt_stmt_conditional;
-            */
         break;
     }
     case STMT_LOOP:
     {
-        /*
-            typedef struct nt_stmt_loop
-            {
-                NT_TYPE self;
-                nt_expression *condition;
-                nt_stmt *body;
-                LOOPTYPE loop_type;
-            } nt_stmt_loop;
-*/
         nt_stmt_loop *loop = current_statement->data;
+
         int t = handle_expression(new_statement_list, loop->condition);
         nt_expression *condition_expression = primary_helper_expression(t);
-        printf("\tthis is a loop\n");
+
+        int label1value = inter_label;
+        inter_label++;
+        nt_stmt *label1 = create_label(label1value);
+
+        switch (loop->loop_type)
+        {
+        case WHILE_LOOP:
+        {
+            int label2value = inter_label;
+            inter_label++;
+            nt_stmt *label2 = create_label(label2value);
+            int label3value = inter_label;
+            inter_label++;
+            nt_stmt *label3 = create_label(label3value);
+
+            nt_stmt *goto_leave_loop = create_goto(label3value, ntf_expression_primary(ntf_primary_1(1)));
+            nt_stmt *goto_back_to_start = create_goto(label1value, ntf_expression_primary(ntf_primary_1(1)));
+
+            add_to_ll(new_statement_list->statements, label1);                  // :L1
+            int t = handle_expression(new_statement_list, loop->condition);     // h = A
+            nt_expression *condition_expression = primary_helper_expression(t); // ...
+            nt_stmt *goto_if = create_goto(label2value, condition_expression);  // ...
+            add_to_ll(new_statement_list->statements, goto_if);                 // if A goto L2
+            add_to_ll(new_statement_list->statements, goto_leave_loop);         // if 1 goto L3
+            add_to_ll(new_statement_list->statements, label2);                  // :L2
+            handle_single_statement(loop->body, new_statement_list);            // body()
+            add_to_ll(new_statement_list->statements, goto_back_to_start);      // if 1 goto L1
+            add_to_ll(new_statement_list->statements, label3);                  // :L3
+
+            break;
+        }
+        case DO_WHILE_LOOP:
+        {
+            add_to_ll(new_statement_list->statements, label1);                  // :L1
+            handle_single_statement(loop->body, new_statement_list);            // body()
+            int t = handle_expression(new_statement_list, loop->condition);     // h = A
+            nt_expression *condition_expression = primary_helper_expression(t); // ...
+            nt_stmt *goto_if = create_goto(label1value, condition_expression);  // ...
+            add_to_ll(new_statement_list->statements, goto_if);                 // if A goto L1
+
+            break;
+        }
+        default:
+        {
+            printf("ERROR: Wrong loop type.");
+        }
+        }
         break;
     }
     case STMT_RETURN_EXPRESSION:

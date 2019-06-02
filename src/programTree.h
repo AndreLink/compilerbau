@@ -298,7 +298,7 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
 void merge_statement_lists(nt_stmt_list *stmt_list_dest, nt_stmt_list *stmt_list_source);
 int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr);
 int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expression *expr);
-nt_expression *primary_helper_expression(int helper_var_index);
+nt_expression *primary_helper_expression(int helper_var_index, type t, nt_stmt_list *declarations);
 void add_helper_assign_expression_to_list(nt_stmt_list *new_statement_list, nt_expression *primary_helper, nt_expression *right_side, nt_expression *expr);
 nt_stmt *create_goto(int goto_label, nt_expression *condition);
 nt_stmt *create_label(int label);

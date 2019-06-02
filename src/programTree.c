@@ -909,22 +909,21 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
         nt_stmt *goto_if = create_goto(label1value, condition_expression);
         nt_stmt *goto_else = create_goto(label2value, ntf_expression_primary(ntf_primary_1(1)));
 
-        add_to_ll(new_statement_list->statements, goto_if);                  // if A goto L1
-        handle_single_statement(conditional->body_else, new_statement_list); // else()
-        add_to_ll(new_statement_list->statements, goto_else);                // if 1 goto L2
-        add_to_ll(new_statement_list->statements, label1);                   // :L1
-        handle_single_statement(conditional->body, new_statement_list);      // if()
-        add_to_ll(new_statement_list->statements, label2);                   // :L2
+        add_to_ll(new_statement_list->statements, goto_if); // if A goto L1
+        if (conditional->body_else)
+        {
+            handle_single_statement(conditional->body_else, new_statement_list);
+        }                                                               // else()
+        add_to_ll(new_statement_list->statements, goto_else);           // if 1 goto L2
+        add_to_ll(new_statement_list->statements, label1);              // :L1
+        handle_single_statement(conditional->body, new_statement_list); // if()
+        add_to_ll(new_statement_list->statements, label2);              // :L2
 
         break;
     }
     case STMT_LOOP:
     {
         nt_stmt_loop *loop = current_statement->data;
-
-        int t = handle_expression(new_statement_list, loop->condition);
-        nt_expression *condition_expression = primary_helper_expression(t);
-
         int label1value = inter_label;
         inter_label++;
         nt_stmt *label1 = create_label(label1value);
@@ -1253,7 +1252,7 @@ nt_stmt *create_goto(int goto_label, nt_expression *condition)
     ret->self = STMT_GOTO;
     ret->condition = condition;
     char *label = malloc(10 * sizeof(char));
-    snprintf(label, 10, "__label%d", goto_label);
+    snprintf(label, 10, "__l%d", goto_label);
     ret->label = label;
 
     nt_stmt *rets = malloc(sizeof(nt_stmt));
@@ -1268,7 +1267,7 @@ nt_stmt *create_label(int labelnumber)
     nt_stmt_label *ret = malloc(sizeof(nt_stmt_label));
     ret->self = STMT_LABEL;
     char *label = malloc(10 * sizeof(char));
-    snprintf(label, 10, "__label%d", labelnumber);
+    snprintf(label, 10, "__l%d", labelnumber);
     ret->id = label;
 
     nt_stmt *rets = malloc(sizeof(nt_stmt));

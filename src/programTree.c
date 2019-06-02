@@ -860,8 +860,8 @@ nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list)
         handle_single_statement(current_statement, new_statement_list, help_var_declarations);
         current_statement_list_element = current_statement_list_element->next;
     }
-    merge_statement_lists(help_var_declarations, new_stmt_list);
-    return new_statement_list;
+    merge_statement_lists(help_var_declarations, new_statement_list);
+    return help_var_declarations;
 }
 
 void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_statement_list, nt_stmt_list *help_var_declarations)

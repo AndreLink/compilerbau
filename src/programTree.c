@@ -1035,7 +1035,7 @@ nt_expression *handle_expression(nt_stmt_list *new_statement_list, nt_expression
         int ret_helper = inter_var;
         inter_var++;
 
-        nt_expression *left = primary_helper_expression(ret_helper, INT_, help_var_declarations);
+        nt_expression *left = primary_helper_expression(ret_helper, expr->type, help_var_declarations);
 
         /* create primary expression for the actual primary */
         nt_expression *right = malloc(sizeof(nt_expression));
@@ -1063,7 +1063,7 @@ nt_expression *handle_expression(nt_stmt_list *new_statement_list, nt_expression
         int ret_helper = inter_var;
         inter_var++;
 
-        nt_expression *left = primary_helper_expression(ret_helper, INT_, help_var_declarations);
+        nt_expression *left = primary_helper_expression(ret_helper, expr->type, help_var_declarations);
         nt_expression *right = handle_expression(new_statement_list, expr->a, help_var_declarations);
 
         /* create logical not with primary */
@@ -1089,7 +1089,7 @@ nt_expression *handle_expression(nt_stmt_list *new_statement_list, nt_expression
         int ret_helper = inter_var;
         inter_var++;
 
-        nt_expression *left = primary_helper_expression(ret_helper, INT_, help_var_declarations);
+        nt_expression *left = primary_helper_expression(ret_helper, expr->type, help_var_declarations);
 
         /* create new assign expression */
         nt_expression *ret = malloc(sizeof(nt_expression));
@@ -1141,7 +1141,7 @@ nt_expression *handle_expression(nt_stmt_list *new_statement_list, nt_expression
         {
             int ret_helper = inter_var;
             inter_var++;
-            nt_expression *left = primary_helper_expression(ret_helper, INT_, help_var_declarations);
+            nt_expression *left = primary_helper_expression(ret_helper, fun->type, help_var_declarations);
             add_helper_assign_expression_to_list(new_statement_list,
                                                  left,
                                                  fe,
@@ -1162,7 +1162,7 @@ nt_expression *handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, n
     inter_var++;
 
     /* create helper variables */
-    nt_expression *exL = primary_helper_expression(ret_helper, INT_, help_var_declarations);
+    nt_expression *exL = primary_helper_expression(ret_helper, expr->type, help_var_declarations);
     nt_expression *exA = handle_expression(new_statement_list, expr->a, help_var_declarations);
     nt_expression *exB = handle_expression(new_statement_list, expr->b, help_var_declarations);
 

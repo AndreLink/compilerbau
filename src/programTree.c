@@ -993,7 +993,7 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
     }
     }
 }
-int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr)
+int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr, nt_stmt_list *help_var_declarations)
 {
     switch (expr->operator)
     {

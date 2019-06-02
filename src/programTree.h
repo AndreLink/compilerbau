@@ -296,7 +296,7 @@ void print_function_declaration_statement_list(nt_stmt_list *statement_list);
 nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list);
 void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_statement_list, nt_stmt_list *help_var_declarations);
 void merge_statement_lists(nt_stmt_list *stmt_list_dest, nt_stmt_list *stmt_list_source);
-int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr);
+int handle_expression(nt_stmt_list *new_statement_list, nt_expression *expr, nt_stmt_list *help_var_declarations);
 int handle_operators(nt_stmt_list *new_statement_list, OPERATOR op, nt_expression *expr);
 nt_expression *primary_helper_expression(int helper_var_index, type t, nt_stmt_list *declarations);
 void add_helper_assign_expression_to_list(nt_stmt_list *new_statement_list, nt_expression *primary_helper, nt_expression *right_side, nt_expression *expr);

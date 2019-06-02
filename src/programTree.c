@@ -872,7 +872,8 @@ void handle_single_statement(nt_stmt *current_statement, nt_stmt_list *new_state
     {
         nt_stmt_block *block = current_statement->data;
         nt_stmt_list *new_block_stmt_list = handle_statement_list(block->stmts);
-        merge_statement_lists(new_statement_list, new_block_stmt_list);
+        nt_stmt_block *new_block = ntf_stmt_block(new_block_stmt_list);
+        add_to_ll(new_statement_list->statements, ntf_stmt_1(new_block));
         break;
     }
     case VARIABLE_DECLARATION:
@@ -1134,7 +1135,7 @@ nt_expression *handle_expression(nt_stmt_list *new_statement_list, nt_expression
         if (fun->type == VOID_)
         {
             add_to_ll(new_statement_list->statements, ntf_stmt_3(fe));
-            return -1;
+            return 0;
         }
         else
         {

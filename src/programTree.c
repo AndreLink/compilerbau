@@ -1011,7 +1011,7 @@ nt_expression *handle_expression(nt_stmt_list *new_statement_list, nt_expression
         /* add new assign to list */
         add_to_ll(new_statement_list->statements, ntf_stmt_3(ret));
 
-        return 0;
+        return right;
     }
     case _PLUS:
     case _MINUS:

@@ -1211,6 +1211,7 @@ void print_inter_code(linked_list *ic_ll)
 
 void print_mips_code(linked_list *ic_ll)
 {
+    printf("jal\tmain\nli\t$v0, 10\nsyscall\n\n");
     list_element *current = ic_ll->first;
     while (current)
     {

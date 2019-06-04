@@ -15,7 +15,7 @@ void print_mips_nt_identifier_declaration(int o, nt_identifier_declaration * nt)
 void print_mips_nt_function_definition(int o, nt_function_definition * nt);
 void print_mips_nt_function_declaration (int o, nt_function_declaration * nt);
 void print_mips_nt_function_parameter_list(int o, nt_function_parameter_list * nt);
-void print_mips_nt_function_parameter(int o, nt_function_parameter * nt);
+void print_mips_nt_function_parameter(int o, nt_function_parameter * nt, int p_cnt);
 void print_mips_nt_stmt_list (int o, nt_stmt_list * nt);
 void print_mips_nt_stmt (int o, nt_stmt * nt);
 void print_mips_nt_stmt_block (int o, nt_stmt * nt);

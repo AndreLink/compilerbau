@@ -6,6 +6,7 @@
 
 void print_nt(int offset, void * nt);
 
+void print_whitespace(int o);
 
 void print_nt_program(int o, nt_program * nt);
 void print_nt_program_element_list(int o, nt_program_element_list * nt);

@@ -4,9 +4,10 @@
 #include "symbol_table.h"
 #include "linkedlist.h"
 
-#define print_st 0
-#define print_c 0
+#define print_st 1
+#define print_c 1
 #define print_i 1
+#define print_m 1
 
 typedef enum NT_TYPE
 {
@@ -291,6 +292,7 @@ void generate_variable_declarations(linked_list *, linked_list *);
 void generate_function_declarations(linked_list *, linked_list *);
 void generate_function_definitions(linked_list *, linked_list *);
 void print_inter_code(linked_list *ic_ll);
+void print_mips_code(linked_list *ic_ll);
 void print_function_declaration(type ret_type, char *id, linked_list *parameter_list);
 void print_function_declaration_statement_list(nt_stmt_list *statement_list);
 nt_stmt_list *handle_statement_list(nt_stmt_list *stmt_list);

@@ -4,6 +4,7 @@
 #include "programTree.h"
 
 #include "programTreePrinter.h"
+#include "mipsPrinter.h"
 #include "linkedlist.h"
 
 int yeet = 42;
@@ -70,7 +71,17 @@ nt_program *ntf_program_1(nt_program_element_list *program_element_list)
     }
     if (print_i)
     {
+        printf("################################################################################\n");
+        printf("    INTERMEDIATE CODE\n");
+        printf("################################################################################\n");
         print_inter_code(out_inter_code(ret));
+    }
+    if (print_m)
+    {
+        printf("################################################################################\n");
+        printf("    MIPS CODE\n");
+        printf("################################################################################\n");
+        print_mips_code(out_inter_code(ret));
     }
     return ret;
 }
@@ -1193,6 +1204,17 @@ void print_inter_code(linked_list *ic_ll)
     while (current)
     {
         print_nt(0, current->data);
+        printf("\n");
+        current = current->next;
+    }
+}
+
+void print_mips_code(linked_list *ic_ll)
+{
+    list_element *current = ic_ll->first;
+    while (current)
+    {
+        print_mips_nt(0, current->data);
         printf("\n");
         current = current->next;
     }
